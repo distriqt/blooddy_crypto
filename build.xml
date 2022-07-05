@@ -230,10 +230,11 @@
 	<target name="airpackage.release" depends="airpackage.build" description="Build AIR Package">
 		<property name="github.repo" value="distriqt/blooddy_crypto" />
 		<property name="packagefile" value="${basedir}/package/by.blooddy.crypto_${version}.airpackage" />
-		<exec executable="git" failonerror="true">
+		<echo>create tag</echo>
+		<exec executable="git" failonerror="false">
 			<arg line="tag -d v${version}" />
 		</exec>
-		<exec executable="git" failonerror="true">
+		<exec executable="git" failonerror="false">
 			<arg line="push -d origin v${version}" />
 		</exec>
 		<exec executable="git" failonerror="true">
@@ -242,6 +243,13 @@
 		<exec executable="git" failonerror="true">
 			<arg line="push -f --tags" />
 		</exec>
+		<echo>create release</echo>
+		<exec executable="gh" failonerror="true">
+			<arg line="-R ${github.repo} release create v${version}" />
+			<arg line="--title 'v${version}'" />
+			<arg line="--generate-notes" />
+		</exec>
+		<echo>uploading airpackage</echo>
 		<exec executable="gh" failonerror="true">
 			<arg line="-R ${github.repo} release upload v${version}" />
 			<arg line="${packagefile}" />
