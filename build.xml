@@ -7,10 +7,10 @@
 	<property name="output" value="${basedir}/bin" />
 	<property name="swc" value="${output}/blooddy_crypto.swc" />
 	
-	<property name="AIR_SDK_HOME" value="${flex.sdk}" />
-    <property name="FLEX_HOME" value="${flex.sdk}" />
+    <property name="AIR_SDK_HOME" value="${air.sdk}" />
+    <property name="FLEX_HOME" value="${air.sdk}" />
 	
-	<taskdef resource="flexTasks.tasks" classpath="${flex.sdk}/ant/lib/flexTasks.jar" />
+	<taskdef resource="flexTasks.tasks" classpath="${AIR_SDK_HOME}/ant/lib/flexTasks.jar" />
 
 	<filelist id="workers.files" dir="${src}">
 		<file name="by/blooddy/crypto/Adler32.swf" />
@@ -38,7 +38,7 @@
 			swf-version="17"
 		>
 
-			<load-config filename="${flex.sdk}/frameworks/air-config.xml" />
+			<load-config filename="${AIR_SDK_HOME}/frameworks/air-config.xml" />
 			<load-config filename="${basedir}/build.config.xml" />
 			<load-config filename="${basedir}/build.config.worker.xml" />
 
@@ -119,7 +119,7 @@
 			include-classes="by.blooddy.crypto.Adler32 by.blooddy.crypto.Base64 by.blooddy.crypto.CRC32 by.blooddy.crypto.MD5 by.blooddy.crypto.SHA1 by.blooddy.crypto.SHA2 by.blooddy.crypto.serialization.JSON by.blooddy.crypto.serialization.JSONer by.blooddy.crypto.image.PNGEncoder by.blooddy.crypto.image.JPEGEncoder"
 		>
 
-			<load-config filename="${flex.sdk}/frameworks/air-config.xml" />
+			<load-config filename="${AIR_SDK_HOME}/frameworks/air-config.xml" />
 			<load-config filename="${basedir}/build.config.xml" />
 
 			<source-path path-element="${src}" />
@@ -172,7 +172,7 @@
 	
 		<antcall target="compile.release" />
 
-		<zip destfile="${output}/blooddy_crypto_v0.0.0.zip">
+		<zip destfile="${output}/blooddy_crypto_v${version}.zip">
 			<filelist dir="${output}">
 				<file name="blooddy_crypto.swc" />
 			</filelist>
@@ -185,6 +185,71 @@
 	
 	<target name="compile" description="Compile Project">
 		<antcall target="build.release" />
+	</target>
+
+
+	<target name="airpackage.build" depends="compile.release" description="Build AIR Package">
+		<property name="airpackage.output" value="${basedir}/package/build" />
+		<property name="github.repo" value="distriqt/blooddy_crypto" />
+		<tstamp>
+			<format property="publish_date" pattern="yyyy-MM-dd" locale="en,UK" />
+		</tstamp>
+
+		<fileset id="packagefile" dir="${basedir}/package">
+			<include name="package.json" />
+		</fileset>
+		<fileset id="descriptionfiles" dir="${basedir}">
+			<include name="README.md" />
+			<include name="LICENSE.md" />
+		</fileset>
+		<union id="packagefiles">
+			<resources refid="packagefile" />
+			<resources refid="descriptionfiles" />
+		</union>
+
+		<copy todir="${airpackage.output}" overwrite="true" >
+			<resources refid="packagefiles" />
+			<filterchain>
+				<tokenfilter>
+					<replacestring from="@GITHUB_REPO@" to="${github.repo}"/>
+					<replacestring from="@VERSION@" to="${version}"/>
+					<replacestring from="@DATE@" to="${publish_date}"/>
+				</tokenfilter>
+			</filterchain>
+		</copy>
+		<copy todir="${airpackage.output}/swc">
+			<fileset dir="${output}">
+				<include name="blooddy_crypto.swc" />
+			</fileset>
+		</copy>
+		<exec executable="apm" dir="${basedir}/package">
+			<arg line="build build" />
+		</exec>
+	</target>
+
+	<target name="airpackage.release" depends="airpackage.build" description="Build AIR Package">
+		<property name="github.repo" value="distriqt/blooddy_crypto" />
+		<property name="packagefile" value="${basedir}/package/by.blooddy.crypto_${version}.airpackage" />
+		<exec executable="git" failonerror="true">
+			<arg line="tag -d v${version}" />
+		</exec>
+		<exec executable="git" failonerror="true">
+			<arg line="push -d origin v${version}" />
+		</exec>
+		<exec executable="git" failonerror="true">
+			<arg line="tag -fa v${version} -m 'release v${version}'" />
+		</exec>
+		<exec executable="git" failonerror="true">
+			<arg line="push -f --tags" />
+		</exec>
+		<exec executable="gh" failonerror="true">
+			<arg line="-R ${github.repo} release upload v${version}" />
+			<arg line="${packagefile}" />
+			<arg line="--clobber" />
+		</exec>
+		<exec executable="apm">
+			<arg line="publish ${packagefile}" />
+		</exec>
 	</target>
 
 </project>

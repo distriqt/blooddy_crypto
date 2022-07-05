@@ -1,0 +1,21 @@
+{
+  "id": "by.blooddy.crypto",
+  "name": "blooddy crypto",
+  "url": "https://github.com/blooddy/blooddy_crypto",
+  "docUrl": "https://github.com/blooddy/blooddy_crypto/wiki",
+  "description": "blooddy_crypto is a ActionScript (AS3) library for processing binary data.",
+  "type": "swc",
+  "version": "@VERSION@",
+  "sourceUrl": "https://github.com/@GITHUB_REPO@/releases/download/v@VERSION@/by.blooddy.crypto_@VERSION@.airpackage",
+  "publishedAt": "@DATE@T00:00:00.000Z",
+  "dependencies": [],
+  "parameters": [],
+  "tags": ["crypto","hash","sha256","sha1","base64"],
+  "license": {
+    "url": "https://github.com/blooddy/blooddy_crypto/blob/master/LICENSE.md",
+    "type": "MIT",
+    "public": true
+  },
+  "status": "release",
+  "purchaseUrl": ""
+}
